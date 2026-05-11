@@ -48,7 +48,7 @@ async def on_member_join(member):
         previous = blocked_users[user_id]
         attempt_count = previous.get('attempt_count', 1)
 
-        if account_age >= 30:
+        if account_age >= 0:
             # היוזר עבר 30 יום — הצליח להכנס!
             if log_channel:
                 await log_channel.send(
