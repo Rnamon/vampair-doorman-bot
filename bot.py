@@ -48,16 +48,16 @@ async def on_member_join(member):
         previous = blocked_users[user_id]
         attempt_count = previous.get('attempt_count', 1)
 
-        if account_age >= 0:
+        if account_age >= 30:
             # היוזר עבר 30 יום — הצליח להכנס!
             if log_channel:
                 await log_channel.send(
-                    f'✅ **Previously Blocked User — Now Eligible**\n'
-                    f'**Username:** {member.name}\n'
-                    f'**Account ID:** {member.id}\n'
-                    f'**Account Age:** {account_age} days\n'
-                    f'**First blocked on:** {previous["blocked_date"]}\n'
-                    f'**Total attempts before success:** {attempt_count}'
+                    f'✅ __**Previously Blocked User — Now Eligible**__\n'
+                    f'__**Username:**__ {member.name}\n'
+                    f'__**Account ID:**__ {member.id}\n'
+                    f'__**Account Age:**__ {account_age} days\n'
+                    f'__**First blocked on:**__ {previous["blocked_date"]}\n'
+                    f'__**Total attempts before success:**__ {attempt_count}'
                 )
             return
 
@@ -68,12 +68,12 @@ async def on_member_join(member):
 
             if log_channel:
                 await log_channel.send(
-                    f'🔄 **Returning Blocked User**\n'
-                    f'**Username:** {member.name}\n'
-                    f'**Account ID:** {member.id}\n'
-                    f'**Previously blocked on:** {previous["blocked_date"]}\n'
-                    f'**Account Age now:** {account_age} days\n'
-                    f'**Total attempts:** {attempt_count + 1}'
+                    f'🔄 __**Returning Blocked User**__\n'
+                    f'__**Username:**__ {member.name}\n'
+                    f'__**Account ID:**__ {member.id}\n'
+                    f'__**Previously blocked on:**__ {previous["blocked_date"]}\n'
+                    f'__**Account Age now:**__ {account_age} days\n'
+                    f'__**Total attempts:**__ {attempt_count + 1}'
                 )
 
     if account_age < 30:
@@ -110,12 +110,12 @@ async def on_member_join(member):
         # התראה בערוץ הלוגים
         if log_channel:
             await log_channel.send(
-                f'⚠️ **User Blocked**\n'
-                f'**Username:** {member.name}\n'
-                f'**Account ID:** {member.id}\n'
-                f'**Account Age:** {account_age} days\n'
-                f'**Days until eligible:** {days_left} days\n'
-                f'**Account Created:** {member.created_at.strftime("%Y-%m-%d")}'
+                f'⚠️ __**User Blocked**__\n'
+                f'__**Username:**__ {member.name}\n'
+                f'__**Account ID:**__ {member.id}\n'
+                f'__**Account Age:**__ {account_age} days\n'
+                f'__**Days until eligible:**__ {days_left} days\n'
+                f'__**Account Created:**__ {member.created_at.strftime("%Y-%m-%d")}'
             )
 
         # העף את המשתמש
