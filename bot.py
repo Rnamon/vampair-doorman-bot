@@ -12,6 +12,7 @@ LOG_CHANNEL_ID = int(os.getenv('LOG_CHANNEL_ID'))
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -43,25 +44,55 @@ async def on_member_join(member):
     # בדיקה אם היוזר נחסם בעבר
     if user_id in blocked_users:
         previous = blocked_users[user_id]
-        if log_channel:
-            await log_channel.send(
-                f'🔄 **Returning Blocked User**\n'
-                f'**Username:** {member.name}\n'
-                f'**Account ID:** {member.id}\n'
-                f'**Previously blocked on:** {previous["blocked_date"]}\n'
-                f'**Account Age now:** {account_age} days'
-            )
+        attempt_count = previous.get('attempt_count', 1)
 
-    # בדיקה אם החשבון צעיר מ-30 יום
+        if account_age >= 30:
+            # היוזר עבר 30 יום — הצליח להכנס!
+            if log_channel:
+                await log_channel.send(
+                    f'✅ **Previously Blocked User — Now Eligible**\n'
+                    f'**Username:** {member.name}\n'
+                    f'**Account ID:** {member.id}\n'
+                    f'**Account Age:** {account_age} days\n'
+                    f'**First blocked on:** {previous["blocked_date"]}\n'
+                    f'**Total attempts before success:** {attempt_count}'
+                )
+            return
+
+        else:
+            # עדיין צעיר מ-30 יום — עדכן מונה ניסיונות
+            blocked_users[user_id]['attempt_count'] = attempt_count + 1
+            save_blocked(blocked_users)
+
+            if log_channel:
+                await log_channel.send(
+                    f'🔄 **Returning Blocked User**\n'
+                    f'**Username:** {member.name}\n'
+                    f'**Account ID:** {member.id}\n'
+                    f'**Previously blocked on:** {previous["blocked_date"]}\n'
+                    f'**Account Age now:** {account_age} days\n'
+                    f'**Total attempts:** {attempt_count + 1}'
+                )
+
     if account_age < 30:
-
         # שמירה בקובץ
-        blocked_users[user_id] = {
-            'username': member.name,
-            'blocked_date': now.strftime('%Y-%m-%d %H:%M UTC'),
-            'account_age': account_age
-        }
-        save_blocked(blocked_users)
+        if user_id not in blocked_users:
+            blocked_users[user_id] = {
+                'username': member.name,
+                'blocked_date': now.strftime('%Y-%m-%d %H:%M UTC'),
+                'account_age': account_age,
+                'attempt_count': 1
+            }
+            save_blocked(blocked_users)
+
+        # מחיקת הודעת welcome
+        for guild_channel in member.guild.text_channels:
+            if guild_channel.name == 'welcome':
+                async for message in guild_channel.history(limit=10):
+                    if message.type == discord.MessageType.new_member and message.author.id == member.id:
+                        await message.delete()
+                        break
+                break
 
         # הודעה פרטית למשתמש
         try:
