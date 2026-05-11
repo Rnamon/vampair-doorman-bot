@@ -9,6 +9,7 @@ load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 LOG_CHANNEL_ID = int(os.getenv('LOG_CHANNEL_ID'))
+WELCOME_CHANNEL_ID = int(os.getenv('WELCOME_CHANNEL_ID'))
 
 intents = discord.Intents.default()
 intents.members = True
@@ -40,6 +41,7 @@ async def on_member_join(member):
     blocked_users = load_blocked()
     user_id = str(member.id)
     log_channel = bot.get_channel(LOG_CHANNEL_ID)
+    welcome_channel = bot.get_channel(WELCOME_CHANNEL_ID)
 
     # בדיקה אם היוזר נחסם בעבר
     if user_id in blocked_users:
@@ -60,7 +62,7 @@ async def on_member_join(member):
             return
 
         else:
-            # עדיין צעיר מ-30 יום — עדכן מונה ניסיונות
+            # עדיין צעיר מ-30 יום
             blocked_users[user_id]['attempt_count'] = attempt_count + 1
             save_blocked(blocked_users)
 
@@ -86,13 +88,11 @@ async def on_member_join(member):
             save_blocked(blocked_users)
 
         # מחיקת הודעת welcome
-        for guild_channel in member.guild.text_channels:
-            if guild_channel.name == 'welcome':
-                async for message in guild_channel.history(limit=10):
-                    if message.type == discord.MessageType.new_member and message.author.id == member.id:
-                        await message.delete()
-                        break
-                break
+        if welcome_channel:
+            async for message in welcome_channel.history(limit=10):
+                if message.type == discord.MessageType.new_member and message.author.id == member.id:
+                    await message.delete()
+                    break
 
         # הודעה פרטית למשתמש
         try:
