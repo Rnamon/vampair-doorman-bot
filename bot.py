@@ -35,6 +35,11 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
+    # ===== תוספת חדשה - התעלם מבוטים =====
+    if member.bot:
+        return
+    # ========================================
+
     now = datetime.now(timezone.utc)
     account_age = (now - member.created_at).days
     days_left = 30 - account_age
