@@ -42,7 +42,7 @@ async def on_member_join(member):
 
     now = datetime.now(timezone.utc)
     account_age = (now - member.created_at).days
-    days_left = 30 - account_age
+    days_left = 0 - account_age
     blocked_users = load_blocked()
     user_id = str(member.id)
     log_channel = bot.get_channel(LOG_CHANNEL_ID)
@@ -53,7 +53,7 @@ async def on_member_join(member):
         previous = blocked_users[user_id]
         attempt_count = previous.get('attempt_count', 1)
 
-        if account_age >= 30:
+        if account_age >= 0:
             # היוזר עבר 30 יום — הצליח להכנס!
             if log_channel:
                 await log_channel.send(
@@ -81,7 +81,7 @@ async def on_member_join(member):
                     f'__**Total attempts:**__ {attempt_count + 1}'
                 )
 
-    if account_age < 30:
+    if account_age < 0:
         # שמירה בקובץ
         if user_id not in blocked_users:
             blocked_users[user_id] = {
