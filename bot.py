@@ -35,11 +35,6 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    # ===== תוספת חדשה - התעלם מבוטים =====
-    if member.bot:
-        return
-    # ========================================
-
     now = datetime.now(timezone.utc)
     account_age = (now - member.created_at).days
     days_left = 30 - account_age
@@ -58,7 +53,7 @@ async def on_member_join(member):
             if log_channel:
                 await log_channel.send(
                     f'✅ __**Previously Blocked User — Now Eligible**__\n'
-                    f'__**Username:**__ {member.name}\n'
+                    f'__**User:**__ <@{member.id}>\n'
                     f'__**Account ID:**__ {member.id}\n'
                     f'__**Account Age:**__ {account_age} days\n'
                     f'__**First blocked on:**__ {previous["blocked_date"]}\n'
@@ -74,7 +69,7 @@ async def on_member_join(member):
             if log_channel:
                 await log_channel.send(
                     f'🔄 __**Returning Blocked User**__\n'
-                    f'__**Username:**__ {member.name}\n'
+                    f'__**User:**__ <@{member.id}>\n'
                     f'__**Account ID:**__ {member.id}\n'
                     f'__**Previously blocked on:**__ {previous["blocked_date"]}\n'
                     f'__**Account Age now:**__ {account_age} days\n'
@@ -116,7 +111,7 @@ async def on_member_join(member):
         if log_channel:
             await log_channel.send(
                 f'⚠️ __**User Blocked**__\n'
-                f'__**Username:**__ {member.name}\n'
+                f'__**User:**__ <@{member.id}>\n'
                 f'__**Account ID:**__ {member.id}\n'
                 f'__**Account Age:**__ {account_age} days\n'
                 f'__**Days until eligible:**__ {days_left} days\n'
