@@ -18,6 +18,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 BLOCKED_FILE = 'blocked_users.json'
+WHITELIST_FILE = 'whitelist.json'
 
 def load_blocked():
     if os.path.exists(BLOCKED_FILE):
@@ -29,9 +30,49 @@ def save_blocked(data):
     with open(BLOCKED_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
+def load_whitelist():
+    if os.path.exists(WHITELIST_FILE):
+        with open(WHITELIST_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+def save_whitelist(data):
+    with open(WHITELIST_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
 @bot.event
 async def on_ready():
     print(f'Bot is online: {bot.user}')
+
+@bot.command()
+async def allow(ctx, user_id: str):
+    # בדיקה שהפקודה נכתבת רק בערוץ הלוגים
+    if ctx.channel.id != LOG_CHANNEL_ID:
+        return
+
+    whitelist = load_whitelist()
+    if user_id in whitelist:
+        await ctx.send(f'⚠️ User `{user_id}` is already in the whitelist!')
+        return
+
+    whitelist.append(user_id)
+    save_whitelist(whitelist)
+    await ctx.send(f'✅ User `{user_id}` has been added to the whitelist!')
+
+@bot.command()
+async def removeallow(ctx, user_id: str):
+    # בדיקה שהפקודה נכתבת רק בערוץ הלוגים
+    if ctx.channel.id != LOG_CHANNEL_ID:
+        return
+
+    whitelist = load_whitelist()
+    if user_id not in whitelist:
+        await ctx.send(f'⚠️ User `{user_id}` is not in the whitelist!')
+        return
+
+    whitelist.remove(user_id)
+    save_whitelist(whitelist)
+    await ctx.send(f'✅ User `{user_id}` has been removed from the whitelist!')
 
 @bot.event
 async def on_member_join(member):
@@ -39,9 +80,21 @@ async def on_member_join(member):
     account_age = (now - member.created_at).days
     days_left = 30 - account_age
     blocked_users = load_blocked()
+    whitelist = load_whitelist()
     user_id = str(member.id)
     log_channel = bot.get_channel(LOG_CHANNEL_ID)
     welcome_channel = bot.get_channel(WELCOME_CHANNEL_ID)
+
+    # בדיקה אם היוזר ברשימת החריגים
+    if user_id in whitelist:
+        if log_channel:
+            await log_channel.send(
+                f'⭐ __**Whitelisted User Joined**__\n'
+                f'__**User:**__ <@{member.id}>\n'
+                f'__**Account ID:**__ {member.id}\n'
+                f'__**Account Age:**__ {account_age} days'
+            )
+        return
 
     # בדיקה אם היוזר נחסם בעבר
     if user_id in blocked_users:
